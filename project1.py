@@ -23,7 +23,7 @@ def checkExpression(expression):
             elif letter in operators:
                 firstStep = True
             else: return False
-    return brackets == 0 and expression [-1:] not in operators.extend(negation)
+    return brackets == 0 and not firstStep
 
 #returns list of letters in expression
 def getListOfLetters(expression):
@@ -41,37 +41,37 @@ def calculate(item1,item2,operator):
             item2 = '0'
         else:
             item2 = '1'
-        return [item2]
+        return item2
 
     elif operator == '∧':
         if item1 == '1' and item2 == '1':
-            return ['1']
+            return '1'
         else:
-            return ['0']
+            return '0'
 
     elif operator == '∨':
         if item1 == '0' and item2 == '0':
-            return ['0']
+            return '0'
         else:
-            return ['1']
+            return '1'
 
     elif operator == '^':
         if item1 == item2:
-            return ['0']
+            return '0'
         else:
-            return ['1']
+            return '1'
 
     elif operator == '⇔':
         if item1 == item2:
-            return ['1']
+            return '1'
         else:
-            return ['0']
+            return '0'
 
     elif operator == '⇒':
         if item1 == '1' and item2 == '0':
-            return ['0']
+            return '0'
         else:
-            return ['1']
+            return '1'
 
 #evaluates expression for given values of letters
 def evaluateExpression(expr,letters,values):
@@ -114,10 +114,27 @@ def evaluateExpression(expr,letters,values):
                 stack.append(calculate(stack.pop(),stack.pop(),result.pop(0)))
     return stack[0]
 
+#turns number to binary representation with leading zeros
+def turnToBinary(number,length):
+    binary = str(bin(number))[2:]
+    while len(binary) != length:
+        binary = '0' + binary
+    return binary
+
 def main():
     st = "¬(a∧b)∨(a⇒b)"
-    print(evaluateExpression(st,getListOfLetters(st),['0','1']))
+    if checkExpression(st) is False:
+        print("Expression has wrong syntax")
+        return 0
+    variables = sorted(getListOfLetters(st))
+    count = getNumberOfLetters(st)
+    table = {}
+    for i in range(0,2**count):
+        binary = turnToBinary(i,count)
+        table[binary] = evaluateExpression(st,variables,list(binary))
+    print(table)
 
+        
 if __name__ == '__main__':
     main()
     
