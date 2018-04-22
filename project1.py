@@ -1,4 +1,5 @@
 import string
+import itertools
 
 #checks if expression is correct
 def checkExpression(expression):
@@ -121,20 +122,96 @@ def turnToBinary(number,length):
         binary = '0' + binary
     return binary
 
+#returns true if string contains given number of 1
+def hasNumberOfOnes(binary, number):
+    ones = 0
+    for c in binary:
+        if c is '1':
+            ones += 1
+    return ones == number
+
+#checks if strings vary only by one character
+#and returns simplified string if it can
+def getSimpleString(binary1,binary2):
+    diffByOne = False
+    simpleStr = ''
+    for i in range(0,len(binary1)):
+        if binary1 != binary2:
+            if binary1 != '-' and binary2 != '-' and not diffByOne:
+                simpleStr = simpleStr + '-'
+                diffByOne = True
+            else: return ''
+        else: simpleStr = simpleStr + binary1[i]
+    return simpleStr
+
+#returns false if string cant be represented by any of the items in list
+def canBeRepresented(binary,impl):
+    can = True
+    length = len(binary)
+    for item in impl:
+        for i in range(0,length):
+            if impl[i] != '-' and impl[i] != binary[i]:
+                can = False
+    return can
+
 def main():
-    st = "¬(a∧b)∨(a⇒b)"
+    st = "¬(a∧b)⇔(a⇒c)"
     if checkExpression(st) is False:
         print("Expression has wrong syntax")
-        return 0
+        return 1
     variables = sorted(getListOfLetters(st))
     count = getNumberOfLetters(st)
     table = {}
     for i in range(0,2**count):
         binary = turnToBinary(i,count)
         table[binary] = evaluateExpression(st,variables,list(binary))
-    print(table)
+    #check if expression is tautology and remove values other than 1
+    isTautology = True
+    toDelete = []
+    for k, v in table.items():
+        if v is '0':
+            isTautology = False
+            toDelete.append(k)
+    if isTautology is True:
+        print("Given expression is tautology")
+        return 0
+    for key in toDelete:
+        del table[key]
+    #checks for higher size implicants
+    noMore = False
+    resultChart = []
+    implicants = []
+    higherImpl = []
+    for k, v in table.items():
+            implicants.append(k)
+    while not noMore:
+        if not higherImpl:
+            implicants = higherImpl
+            higherImpl = []
+    #check for higher size implicants
+        if len(implicants) == 1:
+            resultChart.append(implicants[0])
+            break
+        for pair in itertools.combinations(implicants,2):
+            simpler = getSimpleString(pair[0],pair[1])
+            if simpler is not '':
+                higherImpl.append(simpler)
+    #if there are no higher size implicants
+        if not higherImpl:
+            resultChart = implicants
+            noMore = True
+        else:
+            for item in implicants:
+                if not canBeRepresented(item,higherImpl):
+                    resultChart.append(item)
+    #-pobieram binary i zwracam liste mozliwych stringow
+    #-probuje dobrac kazdy string do kazdego binary, jesli moze byc
+    #representowany tylko przez jeden binary to dodaje binary do wyniku
+    #-konwertuje wynikowe binary na ciagi znakow
 
-        
+
+    
+    
 if __name__ == '__main__':
     main()
     
