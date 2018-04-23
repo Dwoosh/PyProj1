@@ -178,25 +178,33 @@ def turnToExpr(binary,vars):
     return st
 
 def main():
-    print("Enter boolean expression you want to minimize")
+    #prints information
     print("Use lowercase letters for variables")
     print("Use 1 or 0 for obvious true and false values")
-    print("Use brackets ( ) if needed")
     print("Use following symbols for operations:")
     print("* - AND, + - OR, ^ - XOR, > - IMPLIES, = - IFF, ! - NOT")
-    #st = input()
-    st = "!a*!b*!c*!d +!a*!b*c*d+!a*b*!c*!d+!a*b*c*!d+!a*b*c*d+a*!b*!c*d+a*!b*c*!d+a*!b*c*d+a*b*!c*!d"
+    print("Use brackets ( ) if necessary")
+    print("! can be assigned to either variable or expression in brackets")
+    print("AND and OR can be streamed (for example: a+b+c)")
+    print("Use brackets for other operators (for example: (...)=(...)=(...))")
+    print("Enter boolean expression you want to minimize:")
+    st = input()
+    print("")
     st = st.replace(" ","")
+    #checks if expression has correct syntax
     if checkExpression(st) is False:
         print("Expression has wrong syntax")
         return 1
+    #get list of variables and their amount
     variables = sorted(getListOfLetters(st))
     count = getNumberOfLetters(st)
+    #creates dictionary and assigns to every possible binary combination
+    #true or false to which given expression evaluates
     table = {}
     for i in range(0,2**count):
         binary = turnToBinary(i,count)
         table[binary] = evaluateExpression(st,variables,list(binary))
-    #check if expression is tautology and remove values other than 1
+    #check if expression is tautology and removes values other than 1
     isTautology = True
     toDelete = []
     for k, v in table.items():
@@ -208,7 +216,7 @@ def main():
         return 0
     for key in toDelete:
         del table[key]
-    #checks for higher size implicants
+    #check for higher size implicants algorithm
     noMore = False
     implicantChart = []
     implicants = []
@@ -219,7 +227,7 @@ def main():
         if higherImpl:
             implicants = higherImpl
             higherImpl = []
-    #check for higher size implicants
+        #check for higher size implicants
         if len(implicants) == 1:
             implicantChart.append(implicants[0])
             break
@@ -227,7 +235,7 @@ def main():
             simpler = getSimpleString(pair[0],pair[1])
             if simpler is not '':
                 higherImpl.append(simpler)
-    #if there are no higher size implicants
+        #if there are no higher size implicants
         if not higherImpl:
             implicantChart = implicants
             noMore = True
@@ -248,28 +256,43 @@ def main():
             if represents(item,val):
                 possibleValues.append(val)
         chart[item] = possibleValues
-    i = 0
+    toDelete = []
     while trueValues:
-        val = trueValues[i]
-        essentialImpl = False
-        key = ''
-        for k, lst in chart.items():
-            if val in lst:
-                if not essentialImpl:
-                    essentialImpl = True
-                    key = k
-                else:
-                    essentialImpl = False
-                    i += 1
-                    break
-        if essentialImpl:
-            i = 0
-            v = chart[key]
-            del chart[key]
-            result.append(key)
-            for item in v:
-                if item in trueValues:
-                    trueValues.remove(item)
+        #check for essential implicants
+        for item in trueValues:
+            essentialImpl = False
+            key = ''
+            for k, lst in chart.items():
+                if item in lst:
+                    if not essentialImpl:
+                        essentialImpl = True
+                        key = k
+                    else:
+                        essentialImpl = False
+                        break
+            if essentialImpl:
+                v = chart[key]
+                result.append(key)
+                for item in v:
+                    if item not in toDelete:
+                        toDelete.append(item)
+        #remove implicants represented by essential terms from list
+        while toDelete:
+            trueValues.remove(toDelete.pop())
+        #if some implicants are not represented by essential terms
+        #leave in chart only implicants in which every item from
+        #possible values list is still in trueValues
+        if trueValues:
+            for k, lst in chart.items():
+                delet = False
+                for v in lst:
+                    if v not in trueValues:
+                        delet = True
+                        break
+                if delet:
+                    toDelete.append(k)
+        while toDelete:
+            del chart[toDelete.pop()]
     #change strings in list to minimal bool
     #result - list, variables - characters
     minimal = ''
@@ -281,7 +304,7 @@ def main():
     print("Minimal boolean expression:")
     print(minimal)
     
-    
+
 if __name__ == '__main__':
     main()
     
