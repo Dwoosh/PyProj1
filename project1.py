@@ -188,8 +188,8 @@ def main():
     print("AND and OR can be streamed (for example: a+b+c)")
     print("Use brackets for other operators (for example: (...)=(...)=(...))")
     print("Enter boolean expression you want to minimize:")
-    #st = input()
-    st = "!a*!b*!c*d+!a*b*!c*!d+!a*b*!c*d+!a*b*c*!d+a*!b*!c*d+a*!b*c*!d+a*!b*c*d+a*b*!c*d+a*b*c*!d"
+    st = input()
+    #st = "!a*!b*!c*d+!a*b*!c*!d+!a*b*!c*d+!a*b*c*!d+a*!b*!c*d+a*!b*c*!d+a*!b*c*d+a*b*!c*d+a*b*c*!d"
     print("")
     st = st.replace(" ","")
     #checks if expression has correct syntax
