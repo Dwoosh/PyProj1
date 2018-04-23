@@ -3,11 +3,10 @@ import itertools
 
 #checks if expression is correct
 def checkExpression(expression):
-    expression = expression.replace(" ","")
     brackets = 0
     firstStep = True
-    operators = ['∧', '∨', '^', '⇒', '⇔']
-    negation = '¬'
+    operators = ['*', '+', '^', '>', '=']
+    negation = '!'
     for letter in expression:
         if firstStep:
             if letter == '(':
@@ -37,20 +36,20 @@ def getNumberOfLetters(expression):
 
 #calculates given operation
 def calculate(item1,item2,operator):
-    if operator == '¬':
+    if operator == '!':
         if item2 == '1':
             item2 = '0'
         else:
             item2 = '1'
         return item2
 
-    elif operator == '∧':
+    elif operator == '*':
         if item1 == '1' and item2 == '1':
             return '1'
         else:
             return '0'
 
-    elif operator == '∨':
+    elif operator == '+':
         if item1 == '0' and item2 == '0':
             return '0'
         else:
@@ -62,13 +61,13 @@ def calculate(item1,item2,operator):
         else:
             return '1'
 
-    elif operator == '⇔':
+    elif operator == '=':
         if item1 == item2:
             return '1'
         else:
             return '0'
 
-    elif operator == '⇒':
+    elif operator == '>':
         if item1 == '1' and item2 == '0':
             return '0'
         else:
@@ -84,8 +83,8 @@ def evaluateExpression(expr,letters,values):
             expr = expr[:index] + values[place] + expr[index+1:]
         index += 1
     #convert to reverse polish notation
-    operators = ['∧', '∨', '^', '⇒', '⇔', '¬']
-    priority = {'(': 0, ')': 1, '∧': 2, '∨': 1, '^': 3, '⇒': 1, '⇔': 1, '¬': 4}
+    operators = ['*', '+', '^', '>', '=', '!']
+    priority = {'(': 0, ')': 1, '+': 1, '>': 1, '=': 1, '*': 2, '^': 3, '!': 4}
     stack = []
     result = []
     for item in expr:
@@ -109,7 +108,7 @@ def evaluateExpression(expr,letters,values):
         if result[0] not in operators:
             stack.append(result.pop(0))
         else:
-            if result[0] is '¬':
+            if result[0] is '!':
                 stack.append(calculate('',stack.pop(),result.pop(0)))
             else:
                 stack.append(calculate(stack.pop(),stack.pop(),result.pop(0)))
@@ -136,8 +135,8 @@ def getSimpleString(binary1,binary2):
     diffByOne = False
     simpleStr = ''
     for i in range(0,len(binary1)):
-        if binary1 != binary2:
-            if binary1 != '-' and binary2 != '-' and not diffByOne:
+        if binary1[i] != binary2[i]:
+            if binary1[i] != '-' and binary2[i] != '-' and not diffByOne:
                 simpleStr = simpleStr + '-'
                 diffByOne = True
             else: return ''
@@ -146,16 +145,48 @@ def getSimpleString(binary1,binary2):
 
 #returns false if string cant be represented by any of the items in list
 def canBeRepresented(binary,impl):
-    can = True
+    canList = []
     length = len(binary)
     for item in impl:
+        can = True
         for i in range(0,length):
             if impl[i] != '-' and impl[i] != binary[i]:
                 can = False
-    return can
+        canList.append(can)
+    return True in canList
+
+#specification of above for one value not list, returns true if binary represents value
+def represents(binary,value):
+    length = len(binary)
+    for i in range(0,length):
+        if binary[i] != '-' and binary[i] != value[i]:
+            return False
+    return True
+
+#turns binary representation string to bool expression using variables
+def turnToExpr(binary,vars):
+    st = ''
+    length = len(binary)
+    for i in range(0,length):
+        if binary[i] is not '-':
+            if st != '': st += '*'
+            if binary[i] is '1':
+                st += vars[i]
+            else: st = st + '!' + vars[i]
+        else:
+            pass
+    return st
 
 def main():
-    st = "¬(a∧b)⇔(a⇒c)"
+    print("Enter boolean expression you want to minimize")
+    print("Use lowercase letters for variables")
+    print("Use 1 or 0 for obvious true and false values")
+    print("Use brackets ( ) if needed")
+    print("Use following symbols for operations:")
+    print("* - AND, + - OR, ^ - XOR, > - IMPLIES, = - IFF, ! - NOT")
+    #st = input()
+    st = "!a*!b*!c*!d +!a*!b*c*d+!a*b*!c*!d+!a*b*c*!d+!a*b*c*d+a*!b*!c*d+a*!b*c*!d+a*!b*c*d+a*b*!c*!d"
+    st = st.replace(" ","")
     if checkExpression(st) is False:
         print("Expression has wrong syntax")
         return 1
@@ -179,18 +210,18 @@ def main():
         del table[key]
     #checks for higher size implicants
     noMore = False
-    resultChart = []
+    implicantChart = []
     implicants = []
     higherImpl = []
     for k, v in table.items():
             implicants.append(k)
     while not noMore:
-        if not higherImpl:
+        if higherImpl:
             implicants = higherImpl
             higherImpl = []
     #check for higher size implicants
         if len(implicants) == 1:
-            resultChart.append(implicants[0])
+            implicantChart.append(implicants[0])
             break
         for pair in itertools.combinations(implicants,2):
             simpler = getSimpleString(pair[0],pair[1])
@@ -198,18 +229,57 @@ def main():
                 higherImpl.append(simpler)
     #if there are no higher size implicants
         if not higherImpl:
-            resultChart = implicants
+            implicantChart = implicants
             noMore = True
         else:
             for item in implicants:
                 if not canBeRepresented(item,higherImpl):
-                    resultChart.append(item)
-    #-pobieram binary i zwracam liste mozliwych stringow
-    #-probuje dobrac kazdy string do kazdego binary, jesli moze byc
-    #representowany tylko przez jeden binary to dodaje binary do wyniku
-    #-konwertuje wynikowe binary na ciagi znakow
-
-
+                    implicantChart.append(item)               
+    #create list of values for which expression is true
+    trueValues = []
+    for k, v in table.items():
+        trueValues.append(k)
+    #solve chart
+    chart = {}
+    result = []
+    for item in implicantChart:
+        possibleValues = []
+        for val in trueValues:
+            if represents(item,val):
+                possibleValues.append(val)
+        chart[item] = possibleValues
+    i = 0
+    while trueValues:
+        val = trueValues[i]
+        essentialImpl = False
+        key = ''
+        for k, lst in chart.items():
+            if val in lst:
+                if not essentialImpl:
+                    essentialImpl = True
+                    key = k
+                else:
+                    essentialImpl = False
+                    i += 1
+                    break
+        if essentialImpl:
+            i = 0
+            v = chart[key]
+            del chart[key]
+            result.append(key)
+            for item in v:
+                if item in trueValues:
+                    trueValues.remove(item)
+    #change strings in list to minimal bool
+    #result - list, variables - characters
+    minimal = ''
+    firstItem = True
+    for item in result:
+        if not firstItem: minimal += ' + '
+        else: firstItem = False
+        minimal += turnToExpr(item,variables)
+    print("Minimal boolean expression:")
+    print(minimal)
     
     
 if __name__ == '__main__':
