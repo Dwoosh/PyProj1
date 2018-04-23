@@ -150,7 +150,7 @@ def canBeRepresented(binary,impl):
     for item in impl:
         can = True
         for i in range(0,length):
-            if impl[i] != '-' and impl[i] != binary[i]:
+            if item[i] != '-' and item[i] != binary[i]:
                 can = False
         canList.append(can)
     return True in canList
@@ -188,7 +188,8 @@ def main():
     print("AND and OR can be streamed (for example: a+b+c)")
     print("Use brackets for other operators (for example: (...)=(...)=(...))")
     print("Enter boolean expression you want to minimize:")
-    st = input()
+    #st = input()
+    st = "!a*!b*!c*d+!a*b*!c*!d+!a*b*!c*d+!a*b*c*!d+a*!b*!c*d+a*!b*c*!d+a*!b*c*d+a*b*!c*d+a*b*c*!d"
     print("")
     st = st.replace(" ","")
     #checks if expression has correct syntax
