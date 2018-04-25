@@ -188,10 +188,8 @@ def main():
     print("Use 1 or 0 for obvious true and false values")
     print("Use following symbols for operations:")
     print("* - AND, + - OR, ^ - XOR, > - IMPLIES, = - IFF, ! - NOT")
-    print("Use brackets ( ) if necessary")
-    print("! can be assigned to either variable or expression in brackets")
-    print("AND and OR can be streamed (for example: a+b+c)")
-    print("Use brackets for other operators (for example: (...)=(...)=(...))")
+    print("Operator priority: ! ^ * = > +")
+    print("Use brackets ( ) whenever necessary")
     print("Enter boolean expression you want to minimize:")
     st = input()
     #st = "!a*!b*!c*d+!a*b*!c*!d+!a*b*!c*d+!a*b*c*!d+a*!b*!c*d+a*!b*c*!d+a*!b*c*d+a*b*!c*d+a*b*c*!d"
