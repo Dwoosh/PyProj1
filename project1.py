@@ -261,50 +261,45 @@ def main():
                 possibleValues.append(val)
         chart[item] = possibleValues
     toDelete = []
-    firstLoop = True
-    while trueValues:
-        #check for essential implicants
-        essentials = []
-        for item in trueValues:
-            essentialImpl = False
-            key = ''
-            for k, lst in chart.items():
-                if item in lst:
-                    if not essentialImpl:
-                        essentialImpl = True
-                        key = k
-                    else:
-                        essentialImpl = False
-                        break
-            if essentialImpl:
-                essentials.append(key)
-        #remove implicants represented by essential terms from list
-        if not essentials:
-            break
-        while essentials:
-            key = essentials.pop()
-            v = chart[key]
-            result.append(key)
-            for item in v:
-                if item not in toDelete:
-                    toDelete.append(item)
-        while toDelete:
-            trueValues.remove(toDelete.pop())
-        #if some implicants are not represented by essential terms
-        #leave in chart only implicants in which every item from
-        #possible values list is still in trueValues
-        if trueValues and firstLoop:
-            firstLoop = False
-            for k, lst in chart.items():
-                delet = False
-                for v in lst:
-                    if v not in trueValues:
-                        delet = True
-                        break
-                if delet:
-                    toDelete.append(k)
-        while toDelete:
-            del chart[toDelete.pop()]
+    #check for essential implicants
+    essentials = []
+    for item in trueValues:
+        essentialImpl = False
+        key = ''
+        for k, lst in chart.items():
+            if item in lst:
+                if not essentialImpl:
+                    essentialImpl = True
+                    key = k
+                else:
+                    essentialImpl = False
+                    break
+        if essentialImpl:
+            essentials.append(key)
+    #remove implicants represented by essential terms from list
+    while essentials:
+        key = essentials.pop()
+        v = chart[key]
+        result.append(key)
+        for item in v:
+            if item not in toDelete:
+                toDelete.append(item)
+    while toDelete:
+        trueValues.remove(toDelete.pop())
+    #if some implicants are not represented by essential terms
+    #leave in chart only implicants in which every item from
+    #possible values list is still in trueValues
+    if trueValues:
+        for k, lst in chart.items():
+            delet = False
+            for v in lst:
+                if v not in trueValues:
+                    delet = True
+                    break
+            if delet:
+                toDelete.append(k)
+    while toDelete:
+        del chart[toDelete.pop()]
     #if there are still trueValues to be included in result
     #check possible sets of remaining implicants which cover trueValues
     remainingImpl = []
