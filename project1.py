@@ -2,7 +2,7 @@ import string
 import itertools
 
 #checks if expression is correct
-def checkExpression(expression):
+def check_expression(expression):
     brackets = 0
     firstStep = True
     operators = ['*', '+', '^', '>', '=']
@@ -26,12 +26,12 @@ def checkExpression(expression):
     return brackets == 0 and not firstStep
 
 #returns list of letters in expression
-def getListOfLetters(expression):
+def get_list_of_letters(expression):
     return [e for e in string.ascii_lowercase if e in expression]
 
 #returns amount of letters in expression
-def getNumberOfLetters(expression):
-    l = getListOfLetters(expression)
+def get_number_of_letters(expression):
+    l = get_list_of_letters(expression)
     return len(l)
 
 #calculates given operation
@@ -74,7 +74,7 @@ def calculate(item1,item2,operator):
             return '1'
 
 #evaluates expression for given values of letters
-def evaluateExpression(expr,letters,values):
+def evaluate_expression(expr,letters,values):
     #change letters to their values
     index = 0
     for item in expr:
@@ -115,14 +115,14 @@ def evaluateExpression(expr,letters,values):
     return stack[0]
 
 #turns number to binary representation with leading zeros
-def turnToBinary(number,length):
+def turn_to_binary(number,length):
     binary = str(bin(number))[2:]
     while len(binary) != length:
         binary = '0' + binary
     return binary
 
 #returns true if string contains given number of 1
-def hasNumberOfOnes(binary, number):
+def has_number_of_ones(binary, number):
     ones = 0
     for c in binary:
         if c is '1':
@@ -131,7 +131,7 @@ def hasNumberOfOnes(binary, number):
 
 #checks if strings vary only by one character
 #and returns simplified string if it can
-def getSimpleString(binary1,binary2):
+def get_simple_string(binary1,binary2):
     diffByOne = False
     simpleStr = ''
     for i in range(0,len(binary1)):
@@ -144,7 +144,7 @@ def getSimpleString(binary1,binary2):
     return simpleStr
 
 #returns false if string cant be represented by any of the items in list
-def canBeRepresented(binary,impl):
+def can_be_represented(binary,impl):
     canList = []
     length = len(binary)
     for item in impl:
@@ -164,7 +164,7 @@ def represents(binary,value):
     return True
 
 #turns binary representation string to bool expression using variables
-def turnToExpr(binary,vars):
+def turn_to_expr(binary,vars):
     st = ''
     length = len(binary)
     for i in range(0,length):
@@ -176,6 +176,11 @@ def turnToExpr(binary,vars):
         else:
             pass
     return st
+
+#returns list of unique items from given list
+def get_unique(lst):
+    s = set(lst)
+    return list(s)
 
 def main():
     #prints information
@@ -193,18 +198,18 @@ def main():
     print("")
     st = st.replace(" ","")
     #checks if expression has correct syntax
-    if checkExpression(st) is False:
+    if check_expression(st) is False:
         print("Expression has wrong syntax")
         return 1
     #get list of variables and their amount
-    variables = sorted(getListOfLetters(st))
-    count = getNumberOfLetters(st)
+    variables = sorted(get_list_of_letters(st))
+    count = get_number_of_letters(st)
     #creates dictionary and assigns to every possible binary combination
     #true or false to which given expression evaluates
     table = {}
     for i in range(0,2**count):
-        binary = turnToBinary(i,count)
-        table[binary] = evaluateExpression(st,variables,list(binary))
+        binary = turn_to_binary(i,count)
+        table[binary] = evaluate_expression(st,variables,list(binary))
     #check if expression is tautology and removes values other than 1
     isTautology = True
     toDelete = []
@@ -233,7 +238,7 @@ def main():
             implicantChart.append(implicants[0])
             break
         for pair in itertools.combinations(implicants,2):
-            simpler = getSimpleString(pair[0],pair[1])
+            simpler = get_simple_string(pair[0],pair[1])
             if simpler is not '':
                 higherImpl.append(simpler)
         #if there are no higher size implicants
@@ -242,7 +247,7 @@ def main():
             noMore = True
         else:
             for item in implicants:
-                if not canBeRepresented(item,higherImpl):
+                if not can_be_represented(item,higherImpl):
                     implicantChart.append(item)               
     #create list of values for which expression is true
     trueValues = []
@@ -258,8 +263,10 @@ def main():
                 possibleValues.append(val)
         chart[item] = possibleValues
     toDelete = []
+    firstLoop = True
     while trueValues:
         #check for essential implicants
+        essentials = []
         for item in trueValues:
             essentialImpl = False
             key = ''
@@ -272,18 +279,24 @@ def main():
                         essentialImpl = False
                         break
             if essentialImpl:
-                v = chart[key]
-                result.append(key)
-                for item in v:
-                    if item not in toDelete:
-                        toDelete.append(item)
+                essentials.append(key)
         #remove implicants represented by essential terms from list
+        if not essentials:
+            break
+        while essentials:
+            key = essentials.pop()
+            v = chart[key]
+            result.append(key)
+            for item in v:
+                if item not in toDelete:
+                    toDelete.append(item)
         while toDelete:
             trueValues.remove(toDelete.pop())
         #if some implicants are not represented by essential terms
         #leave in chart only implicants in which every item from
         #possible values list is still in trueValues
-        if trueValues:
+        if trueValues and firstLoop:
+            firstLoop = False
             for k, lst in chart.items():
                 delet = False
                 for v in lst:
@@ -294,14 +307,37 @@ def main():
                     toDelete.append(k)
         while toDelete:
             del chart[toDelete.pop()]
+    #if there are still trueValues to be included in result
+    #check possible sets of remaining implicants which cover trueValues
+    remainingImpl = []
+    for k, v in chart.items():
+        remainingImpl.append(k)
+    foundSet = False
+    broke = False
+    if trueValues:
+        for i in range(1,len(remainingImpl)+1):
+            if foundSet: break
+            for possibleSet in itertools.combinations(remainingImpl,i):
+                if foundSet: break
+                broke = False
+                for val in trueValues:
+                    if not can_be_represented(val,possibleSet):
+                        broke = True
+                        break
+                if not broke:
+                    for item in possibleSet:
+                        if item not in result:
+                            result.append(item)
+                    foundSet = True
     #change strings in list to minimal bool
     #result - list, variables - characters
     minimal = ''
     firstItem = True
+    result = get_unique(result)
     for item in result:
         if not firstItem: minimal += ' + '
         else: firstItem = False
-        minimal += turnToExpr(item,variables)
+        minimal += turn_to_expr(item,variables)
     print("Minimal boolean expression:")
     print(minimal)
     
