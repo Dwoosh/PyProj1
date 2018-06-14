@@ -12,4 +12,4 @@ Run python3 manage.py runserver
 
 Open localhost:8000/polls/ in browser
 
-Pollsite based on django tutorials
+*Pollsite based on django tutorials*
